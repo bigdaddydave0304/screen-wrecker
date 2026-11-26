@@ -18,11 +18,11 @@
    LAYOUT: full-bleed canvas, tool dock pinned to bottom over safe area */
 :root{--sat:env(safe-area-inset-top);color-scheme:dark;--dock:#17181c;--ink:#f3f1ec;--mute:#8d8f99;--hot:#ff6a2b}
 *{box-sizing:border-box;min-width:0;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;background:#000;overflow:hidden;overscroll-behavior:none}
-body{font:500 13px/1.2 Rubik,system-ui,sans-serif;color:var(--ink);-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
-#stage{position:fixed;inset:0;overflow:hidden;touch-action:none}
+html,body{margin:0;height:var(--appH,100%);background:#000;overflow:hidden;overscroll-behavior:none}
+body{position:relative;font:500 13px/1.2 Rubik,system-ui,sans-serif;color:var(--ink);-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#stage{position:absolute;top:0;left:0;right:0;height:var(--appH,100%);overflow:hidden;touch-action:none}
 #stage canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
-#dock{position:fixed;left:0;right:0;bottom:0;z-index:2;transition:transform .3s;background:rgba(23,24,28,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid #2a2c33;padding:8px max(4px,env(safe-area-inset-left)) calc(8px + env(safe-area-inset-bottom)) max(4px,env(safe-area-inset-right));display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;height:calc(76px + env(safe-area-inset-bottom))}
+#dock{position:absolute;left:0;right:0;bottom:0;z-index:2;transition:transform .3s;background:rgba(23,24,28,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid #2a2c33;padding:8px max(4px,env(safe-area-inset-left)) calc(8px + env(safe-area-inset-bottom)) max(4px,env(safe-area-inset-right));display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;height:calc(76px + env(safe-area-inset-bottom))}
 #dock::-webkit-scrollbar{display:none}
 .t{flex:1 1 0;max-width:84px;padding:0;height:60px;border:0;border-radius:14px;background:transparent;color:var(--mute);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font:inherit;font-size:10.5px;cursor:pointer;transition:background .15s,color .15s}
 .t svg{width:24px;height:24px}
@@ -33,14 +33,14 @@ body{font:500 13px/1.2 Rubik,system-ui,sans-serif;color:var(--ink);-webkit-user-
 #hint{position:fixed;left:50%;top:calc(18px + env(safe-area-inset-top));transform:translateX(-50%);background:rgba(10,10,14,.78);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:10px 16px;border-radius:999px;font-size:14px;white-space:nowrap;pointer-events:none;transition:opacity .4s}
 #hint b{color:var(--hot);font-weight:800}
 .hidden #dock{transform:translateY(110%)}
-#show{position:fixed;right:max(14px,env(safe-area-inset-right));bottom:calc(14px + env(safe-area-inset-bottom));z-index:3;width:44px;height:44px;border-radius:50%;border:0;background:rgba(0,0,0,.28);color:rgba(255,255,255,.7);display:none;align-items:center;justify-content:center}
+#show{position:absolute;right:max(14px,env(safe-area-inset-right));bottom:calc(14px + env(safe-area-inset-bottom));z-index:3;width:44px;height:44px;border-radius:50%;border:0;background:rgba(0,0,0,.28);color:rgba(255,255,255,.7);display:none;align-items:center;justify-content:center}
 .hidden #show{display:flex}
 #show svg{width:22px;height:22px}
 #file{display:none}
 .shake{animation:sh .28s}
 @keyframes sh{20%{transform:translate(-6px,4px)}40%{transform:translate(5px,-5px)}60%{transform:translate(-4px,-3px)}80%{transform:translate(3px,4px)}}
 @media (prefers-reduced-motion:reduce){.hidden #dock{transform:translateY(110%)}
-#show{position:fixed;right:max(14px,env(safe-area-inset-right));bottom:calc(14px + env(safe-area-inset-bottom));z-index:3;width:44px;height:44px;border-radius:50%;border:0;background:rgba(0,0,0,.28);color:rgba(255,255,255,.7);display:none;align-items:center;justify-content:center}
+#show{position:absolute;right:max(14px,env(safe-area-inset-right));bottom:calc(14px + env(safe-area-inset-bottom));z-index:3;width:44px;height:44px;border-radius:50%;border:0;background:rgba(0,0,0,.28);color:rgba(255,255,255,.7);display:none;align-items:center;justify-content:center}
 .hidden #show{display:flex}
 #show svg{width:22px;height:22px}
 #file{display:none}
@@ -70,6 +70,11 @@ body{font:500 13px/1.2 Rubik,system-ui,sans-serif;color:var(--ink);-webkit-user-
 {
 const stage=document.getElementById('stage'),base=document.getElementById('base'),fx=document.getElementById('fx');
 const b=base.getContext('2d'),f=fx.getContext('2d');
+// iOS home-screen apps report a viewport shorter than the screen by the status bar; use the real screen height
+function fitH(){const portrait=innerHeight>innerWidth,sh=portrait?Math.max(screen.height,screen.width):Math.min(screen.height,screen.width);
+  const standalone=navigator.standalone||matchMedia('(display-mode: standalone)').matches;
+  const h=standalone&&sh>innerHeight&&sh-innerHeight<120?sh:innerHeight;document.documentElement.style.setProperty('--appH',h+'px')}
+fitH();
 const hint=document.getElementById('hint');
 let W=0,H=0,DPR=1,tool='hammer',sound=true;
 const R=(a,c)=>a+Math.random()*(c-a), pick=a=>a[Math.random()*a.length|0];
@@ -339,7 +344,7 @@ try{const d=localStorage.getItem('wreckBg');if(d){const img=new Image();img.onlo
 function hide(on){document.body.classList.toggle('hidden',on)}
 document.getElementById('hide').addEventListener('click',()=>hide(true));
 document.getElementById('show').addEventListener('click',()=>hide(false));
-addEventListener('resize',()=>size(true));
+addEventListener('resize',()=>{fitH();size(true)});addEventListener('orientationchange',()=>setTimeout(()=>{fitH();size(true)},300));
 size(false);
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{drawDesktop()});
 requestAnimationFrame(tick);
