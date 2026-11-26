@@ -89,7 +89,10 @@ const apps=[
 const dockApps=[['Phone','#34c759','#1f9d45','phone'],['Mail','#4fa3ff','#0a60ff','mail'],['Web','#ffffff','#d6e8ff','compass'],['Music','#ff5e7a','#ff2d55','note']];
 let bgImg=null;
 function drawDesktop(){
-  if(bgImg){const sc=Math.max(W/bgImg.width,H/bgImg.height),iw=bgImg.width*sc,ih=bgImg.height*sc;b.fillStyle='#000';b.fillRect(0,0,W,H);b.drawImage(bgImg,(W-iw)/2,(H-ih)/2,iw,ih);return}
+  if(bgImg){ // a screenshot is exactly screen-width: fit by width, pin to top so it maps 1:1 onto the real screen
+    const portraitShot=bgImg.height>=bgImg.width,portraitView=H>=W;
+    let sc=W/bgImg.width;if(portraitShot!==portraitView)sc=Math.max(W/bgImg.width,H/bgImg.height);
+    const iw=bgImg.width*sc,ih=bgImg.height*sc;b.fillStyle='#000';b.fillRect(0,0,W,H);b.drawImage(bgImg,(W-iw)/2,0,iw,ih);return}
   const g=b.createLinearGradient(0,0,W,H);g.addColorStop(0,'#1b1464');g.addColorStop(.45,'#7b2ff7');g.addColorStop(.8,'#f107a3');g.addColorStop(1,'#ff9a5a');
   b.fillStyle=g;b.fillRect(0,0,W,H);
   for(const [cx,cy,r,c] of [[.15,.25,.5,'rgba(80,200,255,.35)'],[.9,.6,.55,'rgba(255,200,80,.3)'],[.4,.95,.5,'rgba(255,60,140,.35)']]){
