@@ -66,6 +66,7 @@ body{position:relative;font:500 13px/1.2 Rubik,system-ui,sans-serif;color:var(--
   <button class="t" data-tool="fire" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a7 7 0 007-7c0-4-3-6-4-10-2 2-2 4-2 5-1-1-2-3-2-5-3 3-6 6-6 10a7 7 0 007 7z"/></svg>Fire</button>
   <button class="t" data-tool="saw" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="9" width="7" height="7" rx="1.5"/><path d="M9 10h11a2 2 0 010 5H9"/><path d="M11 10l1-2 1 2 1-2 1 2 1-2 1 2M11 15l1 2 1-2 1 2 1-2 1 2 1-2"/></svg>Saw</button>
   <button class="t" data-tool="bomb" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="14" r="7"/><path d="M15 9l2-2M17 7c1-2 3-2 4-1M19 3l.5 1.5M22 5.5l-1.5.3"/></svg>Bomb</button>
+  <button class="t" data-tool="unicorn" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21v-5l-3-2c-1.5-1-1.5-3 0-4l5-4 2-4 1 3 3 2-1 2 2 3-3 1-1 3v5"/><path d="M13 2l-1 4"/><circle cx="14.5" cy="8" r=".6" fill="currentColor"/></svg>Unicorn</button>
   <button class="t" data-tool="claw" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4c2 5 3 10 2 16M10 3c2 5 3 10 2 17M15 3c2 5 2 10 1 17M20 5c1 4 1 9-1 14"/></svg>Claw</button>
   <button class="t" data-tool="foot" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c-4 0-6-3-6-7 0-3 2-5 6-5s6 2 6 5c0 4-2 7-6 7z"/><circle cx="6.5" cy="6" r="1.8"/><circle cx="12" cy="4" r="1.8"/><circle cx="17.5" cy="6" r="1.8"/></svg>Stomp</button>
   <button class="t" data-tool="tornado" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h18M5 8h14M7 12h10M9 16h6M11 20h2"/></svg>Tornado</button>
@@ -355,6 +356,84 @@ function claw(path){
   noise(.28,3200,.5,'bandpass');setTimeout(()=>noise(.2,2400,.35,'bandpass'),60);
 }
 
+/* ---------- unicorn + rainbow poop ---------- */
+const RB=['#ff3b5c','#ff9f1c','#ffe14d','#3ddc84','#3fa7ff','#9b5cff'];
+const unicorns=[],drops=[];
+function summonUnicorn(tx,ty){
+  const dir=Math.random()<.5?1:-1,s=Math.min(1.25,Math.max(.8,W/380));
+  const fy=Math.max(70,ty-R(130,190));
+  unicorns.push({x:dir>0?-90*s:W+90*s,y:fy,baseY:fy,dir,s,t:0,sp:R(5,6.5)*s,tx,ty,dropped:false});
+  [0,4,7,12].forEach((n,i)=>setTimeout(()=>tone(660*Math.pow(2,n/12),660*Math.pow(2,n/12)*1.01,.25,.12,'triangle'),i*90));
+}
+function drawUnicorn(u){
+  const c=f,t=u.t,leg=Math.sin(t*.45)*.6,flap=Math.sin(t*.35);
+  c.save();c.translate(u.x,u.y);c.scale(u.dir*u.s,u.s);
+  // tail
+  RB.forEach((col,i)=>{c.strokeStyle=col;c.lineWidth=4;c.lineCap='round';c.beginPath();c.moveTo(-30,-4+i*1.5);c.quadraticCurveTo(-52,-14+i*4+Math.sin(t*.3+i)*4,-62,4+i*3);c.stroke()});
+  // far legs
+  c.strokeStyle='#e6dff0';c.lineWidth=6;
+  [[-18,leg],[16,-leg]].forEach(([lx,a])=>{c.beginPath();c.moveTo(lx,10);c.lineTo(lx+Math.sin(a)*12,30);c.stroke()});
+  // wing (back)
+  c.fillStyle='#f3eefc';c.beginPath();c.moveTo(-4,-10);c.quadraticCurveTo(-18,-44-flap*14,-34,-40-flap*18);c.quadraticCurveTo(-20,-24,-4,-10);c.fill();
+  // body
+  c.fillStyle='#fff';c.strokeStyle='#cfc4e3';c.lineWidth=1.5;c.beginPath();c.ellipse(0,0,34,17,0,0,7);c.fill();c.stroke();
+  // near legs
+  c.strokeStyle='#fff';c.lineWidth=7;
+  [[-22,-leg],[20,leg]].forEach(([lx,a])=>{c.beginPath();c.moveTo(lx,8);c.lineTo(lx+Math.sin(a)*12,32);c.stroke();c.fillStyle='#b48ae6';c.beginPath();c.arc(lx+Math.sin(a)*12,33,3.8,0,7);c.fill()});
+  // neck + head
+  c.fillStyle='#fff';c.beginPath();c.moveTo(18,-8);c.lineTo(32,-34);c.lineTo(44,-30);c.lineTo(34,-2);c.closePath();c.fill();
+  c.beginPath();c.ellipse(44,-34,14,10,.35,0,7);c.fill();c.stroke();
+  c.fillStyle='#ffd6e8';c.beginPath();c.ellipse(55,-29,6,5,.35,0,7);c.fill();
+  c.fillStyle='#2b1d3a';c.beginPath();c.arc(44,-37,2.4,0,7);c.fill();c.fillStyle='#fff';c.beginPath();c.arc(44.8,-37.8,.9,0,7);c.fill();
+  c.fillStyle='#ff9ec7';c.globalAlpha=.6;c.beginPath();c.arc(48,-31,3,0,7);c.fill();c.globalAlpha=1;
+  // ear
+  c.fillStyle='#fff';c.beginPath();c.moveTo(36,-42);c.lineTo(38,-54);c.lineTo(43,-44);c.fill();
+  // horn
+  const hg=c.createLinearGradient(42,-44,52,-70);hg.addColorStop(0,'#ffcf3f');hg.addColorStop(1,'#fff3b0');
+  c.fillStyle=hg;c.beginPath();c.moveTo(40,-43);c.lineTo(54,-72);c.lineTo(47,-41);c.closePath();c.fill();
+  c.strokeStyle='rgba(200,140,0,.6)';c.lineWidth=1;for(let k=0;k<3;k++){c.beginPath();c.moveTo(42+k*3,-48-k*7);c.lineTo(46+k*3,-46-k*7);c.stroke()}
+  // mane
+  RB.forEach((col,i)=>{c.strokeStyle=col;c.lineWidth=3.2;c.beginPath();c.moveTo(34-i*1.5,-44+i*4);c.quadraticCurveTo(24-i*2+Math.sin(t*.4+i)*3,-36+i*5,20-i*2,-16+i*3);c.stroke()});
+  // front wing
+  c.fillStyle='#fbf8ff';c.strokeStyle='#d9cdee';c.beginPath();c.moveTo(0,-8);c.quadraticCurveTo(-8,-48-flap*16,-26,-50-flap*20);c.quadraticCurveTo(-14,-26,0,-8);c.fill();c.stroke();
+  c.restore();
+}
+function rainbowPoop(x,y){
+  const s=Math.min(1.3,Math.max(.85,W/380))*R(.9,1.15);
+  b.fillStyle='rgba(0,0,0,.18)';b.beginPath();b.ellipse(x,y+4*s,40*s,10*s,0,0,7);b.fill();
+  const tiers=[[0,0,38,13],[0,-15,30,12],[2,-28,22,10],[4,-39,13,8]];
+  b.save();b.beginPath();
+  tiers.forEach(([dx,dy,rx,ry])=>{b.moveTo(x+(dx+rx)*s,y+dy*s);b.ellipse(x+dx*s,y+dy*s,rx*s,ry*s,0,0,7)});
+  b.moveTo(x+4*s,y-44*s);b.quadraticCurveTo(x+14*s,y-60*s,x+2*s,y-62*s);b.quadraticCurveTo(x+8*s,y-52*s,x-2*s,y-44*s);
+  b.clip();
+  const g=b.createLinearGradient(x-40*s,y-60*s,x+40*s,y+12*s);RB.forEach((c,i)=>{g.addColorStop(i/RB.length,c);g.addColorStop((i+1)/RB.length-.001,c)});
+  b.fillStyle=g;b.fillRect(x-60*s,y-70*s,120*s,90*s);
+  b.strokeStyle='rgba(255,255,255,.55)';b.lineWidth=2*s;
+  tiers.forEach(([dx,dy,rx,ry])=>{b.beginPath();b.ellipse(x+dx*s,y+dy*s,rx*s*.8,ry*s*.55,0,Math.PI*1.1,Math.PI*1.75);b.stroke()});
+  b.restore();
+  b.strokeStyle='rgba(90,40,120,.45)';b.lineWidth=1.5;
+  tiers.forEach(([dx,dy,rx,ry])=>{b.beginPath();b.ellipse(x+dx*s,y+dy*s,rx*s,ry*s,0,.05,Math.PI-.05);b.stroke()});
+  // googly eyes
+  for(const ex of [-8,8]){b.fillStyle='#fff';b.beginPath();b.arc(x+ex*s,y-17*s,5*s,0,7);b.fill();b.fillStyle='#222';b.beginPath();b.arc(x+ex*s+R(-1.5,1.5)*s,y-16*s,2.4*s,0,7);b.fill()}
+  b.strokeStyle='#222';b.lineWidth=1.6*s;b.beginPath();b.arc(x,y-11*s,5*s,.2,Math.PI-.2);b.stroke();
+  // sparkles stamped around it
+  for(let i=0;i<6;i++){const a=R(0,7),d=R(46,70)*s;star(b,x+Math.cos(a)*d,y-20*s+Math.sin(a)*d*.7,R(3,7)*s,pick(RB))}
+  for(let i=0;i<18;i++){const a=R(0,7),sp=R(2,6);parts.push({x,y:y-20*s,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-2,life:1,decay:R(.02,.04),r:R(1.5,3.5),k:'spark',c:pick(RB),g:.12})}
+  noise(.22,220,.7);tone(140,60,.2,.35,'sawtooth');setTimeout(()=>tone(1500,2400,.15,.08,'triangle'),120);
+}
+function star(c,x,y,r,col){c.fillStyle=col;c.beginPath();for(let i=0;i<8;i++){const a=i*Math.PI/4,rr=i%2?r*.35:r;c.lineTo(x+Math.cos(a)*rr,y+Math.sin(a)*rr)}c.closePath();c.fill()}
+function tickUnicorns(){
+  for(let i=unicorns.length-1;i>=0;i--){const u=unicorns[i];u.t++;u.x+=u.dir*u.sp;u.y=u.baseY+Math.sin(u.t*.12)*8;
+    if(u.t%2==0)RB.forEach((col,k)=>parts.push({x:u.x-u.dir*30*u.s,y:u.y-6*u.s+(k-2.5)*3.2*u.s,vx:-u.dir*.3,vy:0,life:1,decay:.025,r:2.2*u.s,k:'spark',c:col}));
+    if(!u.dropped&&(u.dir>0?u.x>=u.tx-26*u.s:u.x<=u.tx+26*u.s)){u.dropped=true;drops.push({x:u.tx,y:u.y+10*u.s,vy:0,ty:u.ty,rot:0});noise(.12,400,.25)}
+    drawUnicorn(u);
+    if(u.x<-140||u.x>W+140)unicorns.splice(i,1)}
+  for(let i=drops.length-1;i>=0;i--){const d=drops[i];d.vy+=.6;d.y+=d.vy;d.rot+=.15;
+    if(d.y>=d.ty){rainbowPoop(d.x,d.ty);drops.splice(i,1);continue}
+    f.save();f.translate(d.x,d.y);f.rotate(Math.sin(d.rot)*.3);const g=f.createLinearGradient(0,-12,0,10);RB.forEach((c,k)=>g.addColorStop(k/5,c));f.fillStyle=g;
+    f.beginPath();f.ellipse(0,4,12,7,0,0,7);f.ellipse(0,-3,8,6,0,0,7);f.ellipse(1,-9,4,4,0,0,7);f.fill();f.restore()}
+}
+
 /* ---------- particles + ants ---------- */
 const parts=[],ants=[];
 function sparks(x,y,n,c){for(let i=0;i<n;i++){const a=R(0,7),s=R(1.5,5);parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,decay:R(.04,.08),r:R(1,2.2),k:'spark',c,g:.15})}}
@@ -387,6 +466,7 @@ function tick(){
     else if(p.k=='flash'){f.fillStyle=`rgba(255,250,220,${p.life})`;f.fillRect(0,0,W,H)}
     else if(p.k=='debris'){f.fillStyle=`rgba(40,30,25,${p.life})`;f.fillRect(p.x,p.y,p.r,p.r)}
     else{f.fillStyle=p.c;f.globalAlpha=p.life;f.beginPath();f.arc(p.x,p.y,p.r,0,7);f.fill();f.globalAlpha=1}}
+  tickUnicorns();
   for(const [,pt] of ptrs){
     if(tool=='tornado')swirl(pt.x,pt.y);
     if(tool=='gun'&&performance.now()-pt.last>85){pt.last=performance.now();bullet(pt.x,pt.y)}
@@ -409,6 +489,7 @@ fx.addEventListener('pointerdown',e=>{
   else if(tool=='saw')sawOn();
   else if(tool=='tornado')windOn();
   else if(tool=='foot')stomp(p.x,p.y);
+  else if(tool=='unicorn')summonUnicorn(p.x,p.y);
   else if(tool=='glitch')glitchAt(p.x,p.y);
   if(tool=='claw')ptrs.get(e.pointerId).path=[[p.x,p.y]];
 });
@@ -428,14 +509,14 @@ fx.addEventListener('pointerup',up);fx.addEventListener('pointercancel',up);
 document.addEventListener('gesturestart',e=>e.preventDefault());
 document.addEventListener('touchmove',e=>{if(e.target.closest('#stage'))e.preventDefault()},{passive:false});
 
-const names={claw:'Swipe to <b>scratch</b>',foot:'Tap to <b>stomp</b>',tornado:'Hold and swirl to <b>twist</b>',glitch:'Drag to <b>glitch</b>',hammer:'Tap to <b>smash</b>',gun:'Hold to <b>fire</b>',paint:'Tap or drag to <b>splat</b>',ants:'Tap to drop <b>ants</b>',fire:'Drag to <b>burn</b>',saw:'Drag to <b>cut</b>',bomb:'Tap to <b>blow it up</b>'};
+const names={unicorn:'Tap for a <b>unicorn</b>',claw:'Swipe to <b>scratch</b>',foot:'Tap to <b>stomp</b>',tornado:'Hold and swirl to <b>twist</b>',glitch:'Drag to <b>glitch</b>',hammer:'Tap to <b>smash</b>',gun:'Hold to <b>fire</b>',paint:'Tap or drag to <b>splat</b>',ants:'Tap to drop <b>ants</b>',fire:'Drag to <b>burn</b>',saw:'Drag to <b>cut</b>',bomb:'Tap to <b>blow it up</b>'};
 document.querySelectorAll('[data-tool]').forEach(btn=>btn.addEventListener('click',()=>{
   tool=btn.dataset.tool;sawOff();windOff();document.querySelectorAll('[data-tool]').forEach(x=>x.setAttribute('aria-pressed',x===btn));
   hint.innerHTML=names[tool];hint.style.opacity=1;clearTimeout(hint._t);hint._t=setTimeout(()=>hint.style.opacity=0,1400);
 }));
 const snd=document.getElementById('snd');
 snd.addEventListener('click',()=>{sound=!sound;snd.setAttribute('aria-pressed',sound);document.getElementById('wave').style.display=sound?'':'none';if(!sound){sawOff();windOff()}else audio()});
-document.getElementById('reset').addEventListener('click',e=>{if(e.currentTarget._skip){e.currentTarget._skip=false;return}ants.length=0;parts.length=0;drips.length=0;drawDesktop();tone(600,1200,.15,.15)});
+document.getElementById('reset').addEventListener('click',e=>{if(e.currentTarget._skip){e.currentTarget._skip=false;return}unicorns.length=0;drops.length=0;ants.length=0;parts.length=0;drips.length=0;drawDesktop();tone(600,1200,.15,.15)});
 
 const file=document.getElementById('file');
 document.getElementById('photo').addEventListener('click',()=>{if(bgImg&&!confirmPhoto()){return}file.click()});
