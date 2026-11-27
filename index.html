@@ -21,7 +21,10 @@
 html,body{margin:0;height:100%;background:#000;overflow:hidden;overscroll-behavior:none}
 body{position:relative;font:500 13px/1.2 Rubik,system-ui,sans-serif;color:var(--ink);-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 #stage{position:fixed;top:0;left:0;right:0;height:100%;overflow:hidden;touch-action:none}
-#stage canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+#stage canvas{position:absolute;top:0;left:0;touch-action:none}
+#dbg{position:fixed;left:8px;top:calc(60px + env(safe-area-inset-top));z-index:9;background:rgba(0,0,0,.82);color:#7CFC9A;font:12px/1.35 ui-monospace,Menlo,monospace;padding:10px 12px;border-radius:10px;white-space:pre;pointer-events:none;display:none}
+#ip{position:fixed;top:0;height:env(safe-area-inset-top);width:0;visibility:hidden}
+#ib{position:fixed;bottom:0;height:env(safe-area-inset-bottom);width:0;visibility:hidden}
 #dock{position:fixed;left:0;right:0;bottom:0;z-index:2;transition:transform .3s;background:rgba(23,24,28,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid #2a2c33;padding:8px max(4px,env(safe-area-inset-left)) calc(8px + env(safe-area-inset-bottom)) max(4px,env(safe-area-inset-right));display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;height:calc(76px + env(safe-area-inset-bottom))}
 #dock::-webkit-scrollbar{display:none}
 .t{flex:1 1 0;max-width:84px;padding:0;height:60px;border:0;border-radius:14px;background:transparent;color:var(--mute);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font:inherit;font-size:10.5px;cursor:pointer;transition:background .15s,color .15s}
@@ -69,7 +72,7 @@ body{position:relative;font:500 13px/1.2 Rubik,system-ui,sans-serif;color:var(--
   <button class="t" id="hide" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>Hide</button>
 </nav>
 <button id="show" aria-label="Show tools"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg></button>
-<input type="file" id="file" accept="image/*">
+<input type="file" id="file" accept="image/*"><div id="dbg"></div><div id="ip"></div><div id="ib"></div>
 <script>
 {
 const stage=document.getElementById('stage'),base=document.getElementById('base'),fx=document.getElementById('fx');
@@ -165,7 +168,7 @@ function size(keep){
   if(nw===W&&nh===H)return;
   let snap=null,ow=W,oh=H;if(keep&&W){snap=document.createElement('canvas');snap.width=base.width;snap.height=base.height;snap.getContext('2d').drawImage(base,0,0)}
   DPR=Math.min(window.devicePixelRatio||1,2);W=nw;H=nh;
-  for(const c of [base,fx]){c.width=W*DPR;c.height=H*DPR}
+  for(const c of [base,fx]){c.width=W*DPR;c.height=H*DPR;c.style.width=W+'px';c.style.height=H+'px'}
   b.setTransform(DPR,0,0,DPR,0,0);f.setTransform(DPR,0,0,DPR,0,0);
   drawDesktop();if(snap)b.drawImage(snap,0,0,ow,oh);
 }
@@ -300,7 +303,7 @@ function tick(){
 
 /* ---------- input ---------- */
 const ptrs=new Map();
-function pos(e){const r=fx.getBoundingClientRect();if(r.width&&r.height&&(Math.abs(r.width-W)>1||Math.abs(r.height-H)>1))size(true);return{x:(e.clientX-r.left)*W/(r.width||W),y:(e.clientY-r.top)*H/(r.height||H)}}
+function pos(e){const r=fx.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
 fx.addEventListener('pointerdown',e=>{
   e.preventDefault();audio();hint.style.opacity=0;
   try{fx.setPointerCapture(e.pointerId)}catch(_){}
@@ -332,7 +335,7 @@ document.querySelectorAll('[data-tool]').forEach(btn=>btn.addEventListener('clic
 }));
 const snd=document.getElementById('snd');
 snd.addEventListener('click',()=>{sound=!sound;snd.setAttribute('aria-pressed',sound);document.getElementById('wave').style.display=sound?'':'none';if(!sound)sawOff();else audio()});
-document.getElementById('reset').addEventListener('click',()=>{ants.length=0;parts.length=0;drips.length=0;drawDesktop();tone(600,1200,.15,.15)});
+document.getElementById('reset').addEventListener('click',e=>{if(e.currentTarget._skip){e.currentTarget._skip=false;return}ants.length=0;parts.length=0;drips.length=0;drawDesktop();tone(600,1200,.15,.15)});
 
 const file=document.getElementById('file');
 document.getElementById('photo').addEventListener('click',()=>{if(bgImg&&!confirmPhoto()){return}file.click()});
@@ -348,6 +351,22 @@ try{const d=localStorage.getItem('wreckBg');if(d){const img=new Image();img.onlo
 function hide(on){document.body.classList.toggle('hidden',on)}
 document.getElementById('hide').addEventListener('click',()=>hide(true));
 document.getElementById('show').addEventListener('click',()=>hide(false));
+const dbg=document.getElementById('dbg');let dbgOn=false,holdT=null;
+function dbgText(){const r=stage.getBoundingClientRect(),vv=window.visualViewport;
+  return ['standalone '+(navigator.standalone?'yes':'no')+(document.documentElement.classList.contains('standalone')?' (class)':''),
+  'screen     '+screen.width+' x '+screen.height+'  dpr '+devicePixelRatio,
+  'inner      '+innerWidth+' x '+innerHeight,
+  'docEl      '+document.documentElement.clientWidth+' x '+document.documentElement.clientHeight,
+  'visualVP   '+(vv?Math.round(vv.width)+' x '+Math.round(vv.height)+'  scale '+vv.scale+'  top '+Math.round(vv.offsetTop):'n/a'),
+  'inset t/b  '+document.getElementById('ip').offsetHeight+' / '+document.getElementById('ib').offsetHeight,
+  'stage      '+Math.round(r.width)+' x '+Math.round(r.height)+'  top '+Math.round(r.top),
+  'canvas     '+W+' x '+H+'  (bitmap '+base.width+' x '+base.height+')',
+  'photo      '+(bgImg?bgImg.width+' x '+bgImg.height:'none'),
+  'scrollY    '+Math.round(scrollY)].join('\n')}
+function dbgTick(){if(!dbgOn)return;dbg.textContent=dbgText();setTimeout(dbgTick,500)}
+const fixBtn=document.getElementById('reset');
+fixBtn.addEventListener('pointerdown',()=>{holdT=setTimeout(()=>{dbgOn=!dbgOn;dbg.style.display=dbgOn?'block':'none';fixBtn._skip=true;dbgTick()},900)});
+['pointerup','pointerleave','pointercancel'].forEach(ev=>fixBtn.addEventListener(ev,()=>clearTimeout(holdT)));
 addEventListener('resize',()=>size(true));try{new ResizeObserver(()=>size(true)).observe(stage)}catch(e){}[250,800,2000].forEach(t=>setTimeout(()=>size(true),t));addEventListener('orientationchange',()=>setTimeout(()=>size(true),300));
 size(false);
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{drawDesktop()});
