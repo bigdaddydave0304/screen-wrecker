@@ -25,10 +25,13 @@ body{position:relative;font:500 13px/1.2 Rubik,system-ui,sans-serif;color:var(--
 #dbg{position:fixed;left:8px;top:calc(60px + env(safe-area-inset-top));z-index:9;background:rgba(0,0,0,.82);color:#7CFC9A;font:12px/1.35 ui-monospace,Menlo,monospace;padding:10px 12px;border-radius:10px;white-space:pre;pointer-events:none;display:none}
 #ip{position:fixed;top:0;height:env(safe-area-inset-top);width:0;visibility:hidden}
 #ib{position:fixed;bottom:0;height:env(safe-area-inset-bottom);width:0;visibility:hidden}
-#dock{position:fixed;left:0;right:0;bottom:0;z-index:2;transition:transform .3s;background:rgba(23,24,28,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid #2a2c33;padding:8px max(4px,env(safe-area-inset-left)) calc(8px + env(safe-area-inset-bottom)) max(4px,env(safe-area-inset-right));display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;height:calc(76px + env(safe-area-inset-bottom))}
-#dock::-webkit-scrollbar{display:none}
-.t{flex:1 1 0;max-width:84px;padding:0;height:60px;border:0;border-radius:14px;background:transparent;color:var(--mute);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font:inherit;font-size:10.5px;cursor:pointer;transition:background .15s,color .15s}
-.t svg{width:24px;height:24px}
+#dock{position:fixed;left:0;right:0;bottom:0;z-index:2;transition:transform .3s;background:rgba(23,24,28,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid #2a2c33;padding:8px max(4px,env(safe-area-inset-left)) calc(8px + env(safe-area-inset-bottom)) max(4px,env(safe-area-inset-right));display:flex;gap:0;height:calc(76px + env(safe-area-inset-bottom))}
+#tools{flex:1;display:flex;gap:4px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch;touch-action:pan-x;-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent);padding-right:18px}
+#tools::-webkit-scrollbar{display:none}
+#utils{display:flex;gap:2px;padding-left:6px;margin-left:2px;border-left:1px solid #2a2c33}
+#tools .t{flex:0 0 64px}#utils .t{flex:0 0 54px}
+.t{max-width:none;padding:0;height:60px;border:0;border-radius:14px;background:transparent;color:var(--mute);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font:inherit;font-size:11.5px;cursor:pointer;transition:background .15s,color .15s}
+.t svg{width:28px;height:28px}
 .t[aria-pressed=true]{background:#2a2c33;color:var(--ink)}
 .t[aria-pressed=true] svg{color:var(--hot)}
 .t:focus-visible{outline:2px solid var(--hot);outline-offset:-2px}
@@ -58,6 +61,7 @@ body{position:relative;font:500 13px/1.2 Rubik,system-ui,sans-serif;color:var(--
 <div id="stage"><canvas id="base"></canvas><canvas id="fx"></canvas></div>
 <div id="hint">Pick a tool and <b>wreck it</b></div>
 <nav id="dock" aria-label="Tools">
+  <div id="tools">
   <button class="t" data-tool="hammer" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4l6 6-3 3-6-6z"/><path d="M12.5 8.5L4 17a1.4 1.4 0 002 2l8.5-8.5"/></svg>Hammer</button>
   <button class="t" data-tool="gun" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>Gun</button>
   <button class="t" data-tool="paint" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c3 4 6 7 6 10.5a6 6 0 01-12 0C6 10 9 7 12 3z"/></svg>Paint</button>
@@ -65,11 +69,17 @@ body{position:relative;font:500 13px/1.2 Rubik,system-ui,sans-serif;color:var(--
   <button class="t" data-tool="fire" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a7 7 0 007-7c0-4-3-6-4-10-2 2-2 4-2 5-1-1-2-3-2-5-3 3-6 6-6 10a7 7 0 007 7z"/></svg>Fire</button>
   <button class="t" data-tool="saw" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="9" width="7" height="7" rx="1.5"/><path d="M9 10h11a2 2 0 010 5H9"/><path d="M11 10l1-2 1 2 1-2 1 2 1-2 1 2M11 15l1 2 1-2 1 2 1-2 1 2 1-2"/></svg>Saw</button>
   <button class="t" data-tool="bomb" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="14" r="7"/><path d="M15 9l2-2M17 7c1-2 3-2 4-1M19 3l.5 1.5M22 5.5l-1.5.3"/></svg>Bomb</button>
-  
+  <button class="t" data-tool="claw" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4c2 5 3 10 2 16M10 3c2 5 3 10 2 17M15 3c2 5 2 10 1 17M20 5c1 4 1 9-1 14"/></svg>Claw</button>
+  <button class="t" data-tool="foot" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c-4 0-6-3-6-7 0-3 2-5 6-5s6 2 6 5c0 4-2 7-6 7z"/><circle cx="6.5" cy="6" r="1.8"/><circle cx="12" cy="4" r="1.8"/><circle cx="17.5" cy="6" r="1.8"/></svg>Stomp</button>
+  <button class="t" data-tool="tornado" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h18M5 8h14M7 12h10M9 16h6M11 20h2"/></svg>Tornado</button>
+  <button class="t" data-tool="glitch" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h11M8 9h13M3 13h8M13 13h8M6 17h12M3 21h6"/></svg>Glitch</button>
   <button class="t" id="photo" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg>Photo</button>
   <button class="t" id="snd" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z"/><path id="wave" d="M16 9a4 4 0 010 6M18.5 6.5a7.5 7.5 0 010 11"/></svg>Sound</button>
+  </div>
+  <div id="utils">
   <button class="t" id="reset" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 108-8 8.5 8.5 0 00-6 2.5L4 9"/><path d="M4 4v5h5"/></svg>Fix</button>
   <button class="t" id="hide" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>Hide</button>
+  </div>
 </nav>
 <button id="show" aria-label="Show tools"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg></button>
 <input type="file" id="file" accept="image/*"><div id="dbg"></div><div id="ip"></div><div id="ib"></div>
@@ -263,6 +273,91 @@ function bomb(x,y){
   },140);
 }
 
+
+/* ---------- new tools: glitch, tornado, godzilla stomp, bear claw ---------- */
+const glitchCols=['#ff004c','#00e5ff','#39ff14','#ffffff'];
+function glitchAt(x,y){
+  b.save();b.setTransform(1,0,0,1,0,0);
+  for(let n=0;n<3;n++){
+    const yy=y+R(-40,40),h=R(3,26),off=R(-46,46)*DPR,sy=Math.max(0,Math.round(yy*DPR)),sh=Math.min(base.height-sy,Math.round(h*DPR));
+    if(sh<=0)continue;
+    b.drawImage(base,0,sy,base.width,sh,off,sy,base.width,sh);
+    b.drawImage(base,0,sy,base.width,sh,off-Math.sign(off||1)*base.width,sy,base.width,sh);
+    b.globalCompositeOperation='screen';b.globalAlpha=R(.15,.4);b.fillStyle=pick(glitchCols);
+    b.fillRect(R(0,base.width*.5),sy,R(base.width*.2,base.width),sh);
+    b.globalCompositeOperation='source-over';b.globalAlpha=1;
+  }
+  for(let n=0;n<4;n++){const v=R(0,255)|0;b.fillStyle=Math.random()<.5?`rgb(${v},${v},${v})`:pick(glitchCols);b.fillRect((x+R(-60,60))*DPR,(y+R(-40,40))*DPR,R(4,30)*DPR,R(2,8)*DPR)}
+  b.restore();
+  if(Math.random()<.35)tone(R(200,1800),R(100,900),.05,.06,'square');
+}
+let swTmp=null,swCtx=null,swTmp2=null,swCtx2=null;
+function swirl(x,y){
+  if(!swTmp){swTmp=document.createElement('canvas');swCtx=swTmp.getContext('2d')}
+  const Rr=Math.min(95,W*.24),px=Math.round(Rr*2*DPR);
+  if(swTmp.width!==px){swTmp.width=px;swTmp.height=px}
+  swCtx.setTransform(1,0,0,1,0,0);swCtx.clearRect(0,0,px,px);
+  swCtx.drawImage(base,-(x-Rr)*DPR,-(y-Rr)*DPR);
+  if(!swTmp2){swTmp2=document.createElement('canvas');swCtx2=swTmp2.getContext('2d')}
+  if(swTmp2.width!==px){swTmp2.width=px;swTmp2.height=px}
+  const c=px/2;
+  for(const [rad,rot] of [[1,.06],[.6,.14],[.3,.28]]){
+    swCtx2.globalCompositeOperation='source-over';swCtx2.setTransform(1,0,0,1,0,0);swCtx2.clearRect(0,0,px,px);
+    swCtx2.translate(c,c);swCtx2.rotate(rot);swCtx2.drawImage(swTmp,-c,-c);swCtx2.setTransform(1,0,0,1,0,0);
+    const mg=swCtx2.createRadialGradient(c,c,0,c,c,c*rad);mg.addColorStop(0,'rgba(0,0,0,.9)');mg.addColorStop(.55,'rgba(0,0,0,.6)');mg.addColorStop(1,'rgba(0,0,0,0)');
+    swCtx2.globalCompositeOperation='destination-in';swCtx2.fillStyle=mg;swCtx2.fillRect(0,0,px,px);
+    b.drawImage(swTmp2,x-Rr,y-Rr,Rr*2,Rr*2);
+  }
+  for(let i=0;i<2;i++){const a=R(0,7),d=R(Rr*.3,Rr),sp=R(3,6);
+    parts.push({x:x+Math.cos(a)*d,y:y+Math.sin(a)*d,vx:-Math.sin(a)*sp,vy:Math.cos(a)*sp-1,life:1,decay:R(.03,.06),r:R(1.5,4),k:'debris',g:-.05})}
+}
+let wind=null;
+function windOn(){const a=audio();if(!a||wind)return;const s=a.createBufferSource(),fl=a.createBiquadFilter(),g=a.createGain(),l=a.createOscillator(),lg=a.createGain();
+  s.buffer=noiseBuf;s.loop=true;fl.type='bandpass';fl.frequency.value=500;fl.Q.value=1.2;g.gain.value=.35;l.frequency.value=.7;lg.gain.value=300;
+  l.connect(lg).connect(fl.frequency);s.connect(fl).connect(g).connect(a.destination);s.start();l.start();wind={s,l,g}}
+function windOff(){if(!wind)return;try{wind.g.gain.setTargetAtTime(0,ac.currentTime,.1);wind.s.stop(ac.currentTime+.5);wind.l.stop(ac.currentTime+.5)}catch(e){}wind=null}
+function stomp(x,y){
+  const sc=Math.min(W,H)/420,ang=R(-.35,.35);
+  parts.push({x,y,vx:0,vy:0,life:1,decay:.055,r:110*sc,k:'shadow'});
+  noise(.35,180,.35);
+  setTimeout(()=>{
+    crack(x,y,18,260*sc,2);crack(x,y,10,120*sc,1.4);
+    const dg=b.createRadialGradient(x,y,0,x,y,190*sc);dg.addColorStop(0,'rgba(60,45,30,.35)');dg.addColorStop(1,'rgba(60,45,30,0)');b.fillStyle=dg;b.beginPath();b.arc(x,y,190*sc,0,7);b.fill();
+    b.save();b.translate(x,y);b.rotate(ang);b.scale(sc,sc);
+    const fg=b.createRadialGradient(0,10,10,0,10,120);fg.addColorStop(0,'rgba(6,5,4,.97)');fg.addColorStop(.7,'rgba(22,16,12,.93)');fg.addColorStop(1,'rgba(45,34,24,.85)');
+    b.fillStyle=fg;
+    b.beginPath();b.ellipse(0,25,58,82,0,0,7);b.fill();
+    b.beginPath();b.ellipse(0,-20,64,50,0,0,7);b.fill();
+    for(const [tx,ty,rot] of [[-46,-72,-.35],[0,-92,0],[46,-72,.35]]){
+      b.save();b.translate(tx,ty);b.rotate(rot);b.fillStyle=fg;b.beginPath();b.ellipse(0,0,21,30,0,0,7);b.fill();
+      b.fillStyle='rgba(0,0,0,.95)';b.beginPath();b.moveTo(-8,-24);b.lineTo(0,-58);b.lineTo(8,-24);b.closePath();b.fill();b.restore()}
+    b.fillStyle='rgba(255,255,255,.18)';for(let i=0;i<70;i++){b.fillRect(R(-55,55),R(-90,100),R(1,3.5),R(1,3.5))}
+    b.strokeStyle='rgba(0,0,0,.6)';b.lineWidth=3;b.beginPath();b.ellipse(0,25,60,84,0,0,7);b.stroke();
+    b.restore();
+    for(let i=0;i<40;i++){const a=R(0,7),sp=R(3,11);parts.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-2,life:1,decay:R(.012,.025),r:R(2,6),k:'debris',g:.35})}
+    ants.forEach(a=>{if(Math.hypot(a.x-x,a.y-y)<120*sc)a.dead=1});
+    noise(1,140,1);tone(70,28,.8,.9);shake();setTimeout(shake,200);setTimeout(shake,420);
+  },300);
+}
+function claw(path){
+  let p0=path[0],p1=path[path.length-1];
+  if(Math.hypot(p1[0]-p0[0],p1[1]-p0[1])<25){const c=p0,a=R(.9,1.25);p0=[c[0]-Math.cos(a)*95,c[1]-Math.sin(a)*120];p1=[c[0]+Math.cos(a)*95,c[1]+Math.sin(a)*120];
+    path=[];for(let i=0;i<=20;i++){const t=i/20;path.push([p0[0]+(p1[0]-p0[0])*t+Math.sin(t*3.1)*12,p0[1]+(p1[1]-p0[1])*t])}}
+  const dx=p1[0]-p0[0],dy=p1[1]-p0[1],L=Math.hypot(dx,dy)||1,nx=-dy/L,ny=dx/L,gap=Math.max(16,Math.min(26,L/9));
+  [-1.5,-.5,.5,1.5].forEach((k,li)=>{
+    const t0=R(0,.12),t1=R(.85,1),mw=R(8,12)*(li==1||li==2?1.15:1),n=path.length;
+    const pts=path.map(([x,y],i)=>[x+nx*k*gap*(1-.15*Math.abs(i/n-.5)),y+ny*k*gap*(1-.15*Math.abs(i/n-.5))]);
+    for(const [col,ex,off] of [['rgba(255,255,255,.45)',3,1.2],['rgba(25,16,10,.95)',0,0],['rgba(0,0,0,1)',-.55,0]]){
+      b.strokeStyle=col;b.lineCap='round';
+      for(let i=1;i<n;i++){const t=i/(n-1);if(t<t0||t>t1)continue;const tt=(t-t0)/(t1-t0),w=mw*Math.pow(Math.sin(Math.PI*tt),.7);
+        b.lineWidth=ex<0?Math.max(.5,w*(1+ex)):w+ex;b.beginPath();b.moveTo(pts[i-1][0]+off,pts[i-1][1]+off);b.lineTo(pts[i][0]+off,pts[i][1]+off);b.stroke()}
+    }
+    if(Math.random()<.6){const m=pts[(n*R(.3,.7))|0];crackLine(m[0],m[1],Math.atan2(ny,nx)+R(-.6,.6)+(Math.random()<.5?Math.PI:0),R(10,30),1)}
+    for(let i=0;i<5;i++){const m=pts[(R(0,n))|0];parts.push({x:m[0],y:m[1],vx:R(-1.5,1.5),vy:R(-2,0),life:1,decay:R(.03,.06),r:R(1,2.5),k:'debris',g:.25})}
+  });
+  noise(.28,3200,.5,'bandpass');setTimeout(()=>noise(.2,2400,.35,'bandpass'),60);
+}
+
 /* ---------- particles + ants ---------- */
 const parts=[],ants=[];
 function sparks(x,y,n,c){for(let i=0;i<n;i++){const a=R(0,7),s=R(1.5,5);parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,decay:R(.04,.08),r:R(1,2.2),k:'spark',c,g:.15})}}
@@ -290,11 +385,13 @@ function tick(){
     if(Math.random()<.004){b.fillStyle='rgba(15,10,6,.8)';b.beginPath();b.arc(a.x+Math.cos(a.a)*7,a.y+Math.sin(a.a)*7,R(1,2.2),0,7);b.fill()}
     drawAnt(a)}
   for(let i=parts.length-1;i>=0;i--){const p=parts[i];p.x+=p.vx;p.y+=p.vy;if(p.g)p.vy+=p.g;p.life-=p.decay;if(p.life<=0){parts.splice(i,1);continue}
+    if(p.k=='shadow'){const g2=f.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*(1.4-p.life*.6));g2.addColorStop(0,`rgba(0,0,0,${.55*(1-p.life)+.15})`);g2.addColorStop(1,'rgba(0,0,0,0)');f.fillStyle=g2;f.beginPath();f.ellipse(p.x,p.y,p.r*(1.4-p.life*.6),p.r*(1.7-p.life*.7),0,0,7);f.fill();continue}
     if(p.k=='flame'){const r=p.r*(.5+p.life*.7),g=f.createRadialGradient(p.x,p.y,0,p.x,p.y,r);g.addColorStop(0,`rgba(255,240,170,${p.life})`);g.addColorStop(.4,`rgba(255,120,30,${p.life*.8})`);g.addColorStop(1,'rgba(200,30,0,0)');f.fillStyle=g;f.beginPath();f.arc(p.x,p.y,r,0,7);f.fill();p.vx*=.94;p.vy=p.vy*.94-.04}
     else if(p.k=='flash'){f.fillStyle=`rgba(255,250,220,${p.life})`;f.fillRect(0,0,W,H)}
     else if(p.k=='debris'){f.fillStyle=`rgba(40,30,25,${p.life})`;f.fillRect(p.x,p.y,p.r,p.r)}
     else{f.fillStyle=p.c;f.globalAlpha=p.life;f.beginPath();f.arc(p.x,p.y,p.r,0,7);f.fill();f.globalAlpha=1}}
   for(const [,pt] of ptrs){
+    if(tool=='tornado')swirl(pt.x,pt.y);
     if(tool=='gun'&&performance.now()-pt.last>85){pt.last=performance.now();bullet(pt.x,pt.y)}
     if(tool=='fire')scorch(pt.x,pt.y);
   }
@@ -313,6 +410,10 @@ fx.addEventListener('pointerdown',e=>{
   else if(tool=='ants')addAnts(p.x,p.y);
   else if(tool=='bomb')bomb(p.x,p.y);
   else if(tool=='saw')sawOn();
+  else if(tool=='tornado')windOn();
+  else if(tool=='foot')stomp(p.x,p.y);
+  else if(tool=='glitch')glitchAt(p.x,p.y);
+  if(tool=='claw')ptrs.get(e.pointerId).path=[[p.x,p.y]];
 });
 fx.addEventListener('pointermove',e=>{
   const pt=ptrs.get(e.pointerId);if(!pt)return;const p=pos(e);
@@ -321,20 +422,22 @@ fx.addEventListener('pointermove',e=>{
   else if(tool=='saw')gash(pt.x,pt.y,p.x,p.y);
   else if(tool=='ants'){pt.acc+=d;if(pt.acc>30){pt.acc=0;addAnts(p.x,p.y)}}
   else if(tool=='hammer'){pt.acc+=d;if(pt.acc>70){pt.acc=0;hammer(p.x,p.y)}}
+  else if(tool=='glitch'){pt.acc+=d;if(pt.acc>10){pt.acc=0;glitchAt(p.x,p.y)}}
+  else if(tool=='claw'&&pt.path&&d>2)pt.path.push([p.x,p.y]);
   pt.x=p.x;pt.y=p.y;
 });
-const up=e=>{ptrs.delete(e.pointerId);if(!ptrs.size)sawOff()};
+const up=e=>{const pt=ptrs.get(e.pointerId);if(pt&&pt.path&&tool=='claw')claw(pt.path);ptrs.delete(e.pointerId);if(!ptrs.size){sawOff();windOff()}};
 fx.addEventListener('pointerup',up);fx.addEventListener('pointercancel',up);
 document.addEventListener('gesturestart',e=>e.preventDefault());
 document.addEventListener('touchmove',e=>{if(e.target.closest('#stage'))e.preventDefault()},{passive:false});
 
-const names={hammer:'Tap to <b>smash</b>',gun:'Hold to <b>fire</b>',paint:'Tap or drag to <b>splat</b>',ants:'Tap to drop <b>ants</b>',fire:'Drag to <b>burn</b>',saw:'Drag to <b>cut</b>',bomb:'Tap to <b>blow it up</b>'};
+const names={claw:'Swipe to <b>scratch</b>',foot:'Tap to <b>stomp</b>',tornado:'Hold and swirl to <b>twist</b>',glitch:'Drag to <b>glitch</b>',hammer:'Tap to <b>smash</b>',gun:'Hold to <b>fire</b>',paint:'Tap or drag to <b>splat</b>',ants:'Tap to drop <b>ants</b>',fire:'Drag to <b>burn</b>',saw:'Drag to <b>cut</b>',bomb:'Tap to <b>blow it up</b>'};
 document.querySelectorAll('[data-tool]').forEach(btn=>btn.addEventListener('click',()=>{
-  tool=btn.dataset.tool;document.querySelectorAll('[data-tool]').forEach(x=>x.setAttribute('aria-pressed',x===btn));
+  tool=btn.dataset.tool;sawOff();windOff();document.querySelectorAll('[data-tool]').forEach(x=>x.setAttribute('aria-pressed',x===btn));
   hint.innerHTML=names[tool];hint.style.opacity=1;clearTimeout(hint._t);hint._t=setTimeout(()=>hint.style.opacity=0,1400);
 }));
 const snd=document.getElementById('snd');
-snd.addEventListener('click',()=>{sound=!sound;snd.setAttribute('aria-pressed',sound);document.getElementById('wave').style.display=sound?'':'none';if(!sound)sawOff();else audio()});
+snd.addEventListener('click',()=>{sound=!sound;snd.setAttribute('aria-pressed',sound);document.getElementById('wave').style.display=sound?'':'none';if(!sound){sawOff();windOff()}else audio()});
 document.getElementById('reset').addEventListener('click',e=>{if(e.currentTarget._skip){e.currentTarget._skip=false;return}ants.length=0;parts.length=0;drips.length=0;drawDesktop();tone(600,1200,.15,.15)});
 
 const file=document.getElementById('file');
